@@ -2,9 +2,22 @@ package com.example.teiasbackend.repository;
 
 import com.example.teiasbackend.entity.Basvuru;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import java.util.List;
 
-@Repository
 public interface BasvuruRepository extends JpaRepository<Basvuru, Long> {
-    // Spring Data JPA bizim için tüm kayıt (save), silme (delete) ve bulma (findById) komutlarını arka planda otomatik yazdı!
+
+    List<Basvuru> findByDurum(String durum);
+    List<Basvuru> findByDepartman(String departman);
+
+    // 🌟 İSTEĞE GÖRE ÇOKLU VE DİNAMİK FİLTRELEME SORGUSU:
+    // Parametre boş (null) gönderilirse o kriteri görmezden gelir, doluysa filtreye ekler!
+    @Query("SELECT b FROM Basvuru b WHERE " +
+            "(:durum IS NULL OR b.durum = :durum) AND " +
+            "(:departman IS NULL OR b.departman = :departman) AND " +
+            "(:sehir IS NULL OR b.sehir = :sehir)")
+    List<Basvuru> cokluFiltrele(@Param("durum") String durum,
+                                @Param("departman") String departman,
+                                @Param("sehir") String sehir);
 }

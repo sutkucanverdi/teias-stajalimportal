@@ -10,6 +10,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import com.example.teiasbackend.dto.BasvuruDurumGuncelleRequestDto;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import com.example.teiasbackend.dto.BasvuruGuncelleRequestDto;
 @Service
 @RequiredArgsConstructor
 public class BasvuruService {
@@ -80,5 +87,95 @@ public class BasvuruService {
                 .durum(guncelBasvuru.getDurum()) // İşte yeni onaylanan durum buraya geldi!
                 .basvuruTarihi(guncelBasvuru.getBasvuruTarihi())
                 .build();
+    }
+    // 🌟 Başvuru güncelleme ve dosya (PDF/CV) yükleme metodu:
+    public BasvuruResponseDto basvuruGuncelleVeDosyaYukle(Long id, String yeniDepartman, MultipartFile dosya) {
+
+        Basvuru basvuru = basvuruRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("HATA: " + id + " numaralı başvuru bulunamadı!"));
+
+        // Eğer yeni departman yazıldıysa güncelliyoruz:
+        if (yeniDepartman != null && !yeniDepartman.trim().isEmpty()) {
+            basvuru.setDepartman(yeniDepartman);
+        }
+
+        // Eğer dosya yüklendiyse kaydediyoruz:
+        if (dosya != null && !dosya.isEmpty()) {
+            try {
+                String uploadKlasoru = "uploads/";
+                File klasor = new File(uploadKlasoru);
+                if (!klasor.exists()) {
+                    klasor.mkdirs();
+                }
+
+                String dosyaAdi = System.currentTimeMillis() + "_" + dosya.getOriginalFilename();
+                Path dosyaYolu = Paths.get(uploadKlasoru + dosyaAdi);
+                Files.write(dosyaYolu, dosya.getBytes());
+
+                basvuru.setBelgeYolu(dosyaYolu.toString());
+
+            } catch (IOException e) {
+                throw new RuntimeException("HATA: Dosya yüklenirken hata oluştu: " + e.getMessage());
+            }
+        }
+
+        Basvuru guncellenen = basvuruRepository.save(basvuru);
+
+        return BasvuruResponseDto.builder()
+                .id(guncellenen.getId())
+                .adSoyad(guncellenen.getUser().getAdSoyad())
+                .departman(guncellenen.getDepartman())
+                .durum(guncellenen.getDurum())
+                .basvuruTarihi(guncellenen.getBasvuruTarihi())
+                .build();
+    }
+    // 🌟 Duruma göre filtreleyip getiren metot (Örn: Sadece İNCELENİYOR olanlar):
+    public List<BasvuruResponseDto> durumaGoreBasvurulariGetir(String durum) {
+        return basvuruRepository.findByDurum(durum).stream()
+                .map(b -> BasvuruResponseDto.builder()
+                        .id(b.getId())
+                        .adSoyad(b.getUser().getAdSoyad())
+                        .departman(b.getDepartman())
+                        .durum(b.getDurum())
+                        .basvuruTarihi(b.getBasvuruTarihi())
+                        .build())
+                .toList();
+    }
+
+    // 🌟 Departmana göre filtreleyip getiren metot:
+    public List<BasvuruResponseDto> departmanaGoreBasvurulariGetir(String departman) {
+        return basvuruRepository.findByDepartman(departman).stream()
+                .map(b -> BasvuruResponseDto.builder()
+                        .id(b.getId())
+                        .adSoyad(b.getUser().getAdSoyad())
+                        .departman(b.getDepartman())
+                        .durum(b.getDurum())
+                        .basvuruTarihi(b.getBasvuruTarihi())
+                        .build())
+                .toList();
+    }
+    // 🌟 Başvuru silme / iptal etme metodu:
+    public String basvuruSil(Long id) {
+        // 1. Önce böyle bir başvuru gerçekten var mı diye kontrol ediyoruz:
+        if (!basvuruRepository.existsById(id)) {
+            throw new RuntimeException("HATA: " + id + " numaralı başvuru bulunamadı!");
+        }
+
+        // 2. Varsa veritabanından söküp atıyoruz:
+        basvuruRepository.deleteById(id);
+
+        return id + " numaralı başvuru sistemden başarıyla silindi! 🗑️";
+    }
+    // 🌟 Çoklu ve Dinamik Filtreleme Servisi:
+    public List<BasvuruResponseDto> dinamikBasvuruFiltrele(String durum, String departman, String sehir) {
+        return basvuruRepository.cokluFiltrele(durum, departman, sehir).stream()
+                .map(b -> BasvuruResponseDto.builder()
+                        .id(b.getId())
+                        .adSoyad(b.getUser().getAdSoyad())
+                        .departman(b.getDepartman())
+                        .durum(b.getDurum())
+                        .basvuruTarihi(b.getBasvuruTarihi())
+                        .build())
+                .toList();
     }
 }
