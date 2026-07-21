@@ -1,5 +1,6 @@
 package com.example.teiasbackend.exception;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -9,21 +10,30 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-// 🌟 1. SİHİRLİ ETİKET: Bu etiket, sınıfımıza "Sistemdeki tüm Controller'ları izle, bir hata çıkarsa hemen araya gir!" emri verir.
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // 🌟 2. SİHİRLİ ETİKET: Aşçımızın fırlattığı tüm RuntimeException'ları (çalışma zamanı hatalarını) yakala!
+    // 🌟 1. ÖZEL TUZAK: Veritabanında çift kayıt (unique kuralı ihlali) olduğunda kesinlikle burası çalışacak!
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+
+        Map<String, Object> hataCevabi = new HashMap<>();
+        hataCevabi.put("zaman", LocalDateTime.now().toString());
+        hataCevabi.put("durum", HttpStatus.CONFLICT.value()); // HTTP 409 Conflict (Çakışma / Zaten Var) Kodu
+        hataCevabi.put("mesaj", "HATA: Bu TC Kimlik numarası ile sistemde zaten kayıtlı bir kullanıcı bulunmaktadır!");
+
+        return new ResponseEntity<>(hataCevabi, HttpStatus.CONFLICT);
+    }
+
+    // 🌟 2. GENEL TUZAK: Bizim TC algoritmamız gibi diğer çalışma zamanı hatalarını yakalar (400 Bad Request)
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException ex) {
 
-        // Dış dünyaya göndereceğimiz şık tepsiyi (JSON objesini) hazırlıyoruz:
         Map<String, Object> hataCevabi = new HashMap<>();
-        hataCevabi.put("zaman", LocalDateTime.now().toString()); // Hatayı aldığımız anın saati
+        hataCevabi.put("zaman", LocalDateTime.now().toString());
         hataCevabi.put("durum", HttpStatus.BAD_REQUEST.value()); // HTTP 400 Kodu
-        hataCevabi.put("mesaj", ex.getMessage());                // Aşçımızın yazdığı hata notu
+        hataCevabi.put("mesaj", ex.getMessage());
 
-        // Şık paketimizi 400 Bad Request etiketiyle dış dünyaya sunuyoruz:
         return new ResponseEntity<>(hataCevabi, HttpStatus.BAD_REQUEST);
     }
 }
