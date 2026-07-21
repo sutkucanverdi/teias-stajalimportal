@@ -8,6 +8,7 @@ import com.example.teiasbackend.repository.BasvuruRepository;
 import com.example.teiasbackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -42,5 +43,21 @@ public class BasvuruService {
                 .durum(kaydedilenBasvuru.getDurum())
                 .basvuruTarihi(kaydedilenBasvuru.getBasvuruTarihi())
                 .build();
+    }
+    // 🌟 İK Yöneticisi için tüm başvuruları listeleyen metodumuz:
+    public List<BasvuruResponseDto> tumBasvurulariGetir() {
+        // 1. Kilerimizden (Veritabanından) tüm başvuru kayıtlarını çekiyoruz:
+        List<Basvuru> basvurular = basvuruRepository.findAll();
+
+        // 2. Java Streams (Akış) gücünü kullanarak her bir Entity'yi şık sunum tepsimize (DTO) dönüştürüyoruz:
+        return basvurular.stream()
+                .map(basvuru -> BasvuruResponseDto.builder()
+                        .id(basvuru.getId())
+                        .adSoyad(basvuru.getUser().getAdSoyad()) // İlişkiden stajyerin adını çektik!
+                        .departman(basvuru.getDepartman())
+                        .durum(basvuru.getDurum())
+                        .basvuruTarihi(basvuru.getBasvuruTarihi())
+                        .build())
+                .toList(); // Listeye çevirip garsona teslim ediyoruz.
     }
 }

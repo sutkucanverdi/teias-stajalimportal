@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import java.util.List;
 @RestController
 @RequestMapping("/api/basvurular")
 @RequiredArgsConstructor
@@ -21,5 +21,12 @@ public class BasvuruController {
         BasvuruResponseDto response = basvuruService.basvuruOlustur(requestDto);
         // Yeni bir kaynak oluşturulduğu için 201 Created (Kayıt Başarıyla Oluşturuldu) koduyla dönüyoruz!
         return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+    // 🌟 İK Yöneticisinin (veya Swagger'ın) HTTP GET ile tüm listeyi çekmesini sağlar:
+    @GetMapping
+    public ResponseEntity<List<BasvuruResponseDto>> tumBasvurulariListele() {
+        List<BasvuruResponseDto> basvuruListesi = basvuruService.tumBasvurulariGetir();
+        // Liste başarılı şekilde çekildiği için 200 OK koduyla birlikte listeyi dönüyoruz!
+        return ResponseEntity.ok(basvuruListesi);
     }
 }
