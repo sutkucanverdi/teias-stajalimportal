@@ -9,7 +9,7 @@ import com.example.teiasbackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
-
+import com.example.teiasbackend.dto.BasvuruDurumGuncelleRequestDto;
 @Service
 @RequiredArgsConstructor
 public class BasvuruService {
@@ -59,5 +59,26 @@ public class BasvuruService {
                         .basvuruTarihi(basvuru.getBasvuruTarihi())
                         .build())
                 .toList(); // Listeye çevirip garsona teslim ediyoruz.
+    }
+    // 🌟 İK Yöneticisinin başvuru durumunu (ONAYLANDI/REDDEDİLDİ) güncellemesini sağlayan metod:
+    public BasvuruResponseDto basvuruDurumGuncelle(Long id, BasvuruDurumGuncelleRequestDto requestDto) {
+        // 1. Veritabanında bu ID'ye sahip bir başvuru var mı diye kontrol ediyoruz:
+        Basvuru basvuru = basvuruRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("HATA: " + id + " numaralı başvuru sistemde bulunamadı!"));
+
+        // 2. Yeni durumu (Örn: "ONAYLANDI") eski durumun yerine yazıyoruz:
+        basvuru.setDurum(requestDto.getDurum());
+
+        // 3. Güncellenmiş haliyle veritabanına geri kaydediyoruz:
+        Basvuru guncelBasvuru = basvuruRepository.save(basvuru);
+
+        // 4. Güncel bilgileri dış dünyaya sunum tepsimiz (ResponseDto) ile geri gönderiyoruz:
+        return BasvuruResponseDto.builder()
+                .id(guncelBasvuru.getId())
+                .adSoyad(guncelBasvuru.getUser().getAdSoyad()) // İlişkiden adı tekrar çektik!
+                .departman(guncelBasvuru.getDepartman())
+                .durum(guncelBasvuru.getDurum()) // İşte yeni onaylanan durum buraya geldi!
+                .basvuruTarihi(guncelBasvuru.getBasvuruTarihi())
+                .build();
     }
 }
