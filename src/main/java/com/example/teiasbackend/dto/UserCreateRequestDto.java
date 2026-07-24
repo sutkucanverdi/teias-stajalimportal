@@ -5,6 +5,7 @@ import lombok.Data;
 @Data
 public class UserCreateRequestDto {
     private String tcKimlik;
-    private String adSoyad;
+    private String ad;
+    private String soyad;
     private String sifre;
 }

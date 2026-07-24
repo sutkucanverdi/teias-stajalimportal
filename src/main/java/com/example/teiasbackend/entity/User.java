@@ -2,6 +2,7 @@ package com.example.teiasbackend.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "users")
@@ -12,7 +13,8 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String adSoyad;
+    private String ad;
+    private String soyad;
 
     @Column(unique = true)
     private String tcKimlik;
@@ -20,7 +22,13 @@ public class User {
     @Column(unique = true)
     private String kullaniciAdi;
 
-    private String sifre;
+    private String email;
+    private String telefon;
+    private LocalDate dogumTarihi;
 
+    private String sifre;
     private String rol;
+
+    private boolean aktifMi = false;
+    private String aktivasyonKodu;
 }

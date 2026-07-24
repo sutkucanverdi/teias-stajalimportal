@@ -9,7 +9,8 @@ import java.time.LocalDateTime;
 public class BasvuruResponseDto {
     private Long id;
     private String tcKimlik;
-    private String adSoyad;
+    private String ad;
+    private String soyad;
     private String eposta;
     private String telefon;
     private String okulAdi;

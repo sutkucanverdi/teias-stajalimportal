@@ -1,80 +1,46 @@
 package com.example.teiasbackend.service;
 
-import com.example.teiasbackend.dto.UserCreateRequestDto;
-import com.example.teiasbackend.dto.UserResponseDto;
+import com.example.teiasbackend.dto.StudentRegisterRequestDto;
 import com.example.teiasbackend.entity.User;
 import com.example.teiasbackend.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Random;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
-
-    public UserResponseDto kullaniciKaydet(UserCreateRequestDto requestDto) {
-        if (!tcKimlikDogrula(requestDto.getTcKimlik())) {
-            throw new RuntimeException("HATA: Geçersiz TC Kimlik Numarası! Lütfen kurallara uygun bir TC girin.");
+    public String ogrenciKaydet(StudentRegisterRequestDto dto) {
+        if (userRepository.findByTcKimlik(dto.getTcKimlik()).isPresent()) {
+            throw new RuntimeException("Bu TC Kimlik numarası ile zaten kayıt olunmuş.");
         }
 
-        User yeniUser = new User();
-        yeniUser.setTcKimlik(requestDto.getTcKimlik());
-        yeniUser.setAdSoyad(requestDto.getAdSoyad());
+        User user = new User();
+        user.setAd(dto.getAd());
+        user.setSoyad(dto.getSoyad());
+        user.setTcKimlik(dto.getTcKimlik());
+        user.setKullaniciAdi(dto.getTcKimlik());
+        user.setEmail(dto.getEmail());
+        user.setTelefon(dto.getTelefon());
+        user.setDogumTarihi(dto.getDogumTarihi());
+        user.setSifre(passwordEncoder.encode(dto.getSifre()));
+        user.setRol("ROLE_STUDENT");
+        user.setAktifMi(false);
 
-        String kriptoluSifre = passwordEncoder.encode(requestDto.getSifre());
-        yeniUser.setSifre(kriptoluSifre);
+        String aktivasyonKodu = String.format("%06d", new Random().nextInt(999999));
+        user.setAktivasyonKodu(aktivasyonKodu);
 
-        yeniUser.setRol("STUDENT");
+        userRepository.save(user);
 
-        User kaydedilenUser = userRepository.save(yeniUser);
+        System.out.println("SİSTEM BİLDİRİMİ -> " + user.getEmail() + " için Aktivasyon Kodu: " + aktivasyonKodu);
 
-        return entityToResponseDto(kaydedilenUser);
-    }
-
-    public List<UserResponseDto> tumKullanicilariGetir() {
-        List<User> userListesi = userRepository.findAll();
-        List<UserResponseDto> responseListesi = new ArrayList<>();
-
-        for (User user : userListesi) {
-            responseListesi.add(entityToResponseDto(user));
-        }
-        return responseListesi;
-    }
-
-    private UserResponseDto entityToResponseDto(User user) {
-        UserResponseDto dto = new UserResponseDto();
-        dto.setId(user.getId());
-        dto.setTcKimlik(user.getTcKimlik());
-        dto.setAdSoyad(user.getAdSoyad());
-        dto.setRol(user.getRol());
-        return dto;
-    }
-
-    public boolean tcKimlikDogrula(String tc) {
-        if (tc == null || tc.length() != 11) return false;
-        if (!tc.matches("^[1-9][0-9]{10}$")) return false;
-
-        int[] digits = new int[11];
-        for (int i = 0; i < 11; i++) digits[i] = Character.getNumericValue(tc.charAt(i));
-
-        int teklerToplami = digits[0] + digits[2] + digits[4] + digits[6] + digits[8];
-        int ciftlerToplami = digits[1] + digits[3] + digits[5] + digits[7];
-
-        int hane10 = ((teklerToplami * 7) - ciftlerToplami) % 10;
-        if (hane10 < 0) hane10 += 10;
-        if (hane10 != digits[9]) return false;
-
-        int ilk10Toplam = 0;
-        for (int i = 0; i < 10; i++) ilk10Toplam += digits[i];
-
-        return (ilk10Toplam % 10) == digits[10];
+        return "Kayıt başarılı. Sistemde oluşan aktivasyon kodunu kullanarak hesabınızı doğrulayınız.";
     }
 }

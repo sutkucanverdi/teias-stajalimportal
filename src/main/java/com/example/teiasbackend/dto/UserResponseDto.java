@@ -6,6 +6,7 @@ import lombok.Data;
 public class UserResponseDto {
     private Long id;
     private String tcKimlik;
-    private String adSoyad;
+    private String ad;
+    private String soyad;
     private String rol;
 }

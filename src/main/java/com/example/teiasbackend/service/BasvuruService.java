@@ -25,6 +25,7 @@ public class BasvuruService {
 
     private final BasvuruRepository basvuruRepository;
     private final UserRepository userRepository;
+
     private String dosyaKaydet(MultipartFile dosya, String tur) {
         if (dosya == null || dosya.isEmpty()) return null;
         try {
@@ -40,12 +41,15 @@ public class BasvuruService {
             throw new RuntimeException("HATA: " + tur + " dosyası kaydedilemedi: " + e.getMessage());
         }
     }
+
     private BasvuruResponseDto mapToResponseDto(Basvuru b) {
-        String adSoyad = (b.getUser() != null) ? b.getUser().getAdSoyad() : b.getAdSoyad();
+        String ad = (b.getUser() != null) ? b.getUser().getAd() : "Bilinmiyor";
+        String soyad = (b.getUser() != null) ? b.getUser().getSoyad() : "Bilinmiyor";
 
         return BasvuruResponseDto.builder()
                 .id(b.getId())
-                .adSoyad(adSoyad)
+                .ad(ad)
+                .soyad(soyad)
                 .tcKimlik(b.getTcKimlik())
                 .eposta(b.getEposta())
                 .telefon(b.getTelefon())
@@ -66,16 +70,18 @@ public class BasvuruService {
                 .basvuruTarihi(b.getBasvuruTarihi())
                 .build();
     }
+
     public BasvuruResponseDto basvuruOlustur(BasvuruCreateRequestDto requestDto,
                                              MultipartFile isg,
                                              MultipartFile okulFormu,
                                              MultipartFile veliIzni) {
         User stajyer = userRepository.findById(requestDto.getUserId())
                 .orElseThrow(() -> new RuntimeException("HATA: Sistemde " + requestDto.getUserId() + " ID numarasına sahip stajyer bulunamadı!"));
+
         Basvuru basvuru = new Basvuru();
         basvuru.setUser(stajyer);
         basvuru.setTcKimlik(requestDto.getTcKimlik());
-        basvuru.setAdSoyad(requestDto.getAdSoyad() != null ? requestDto.getAdSoyad() : stajyer.getAdSoyad());
+
         basvuru.setEposta(requestDto.getEposta());
         basvuru.setTelefon(requestDto.getTelefon());
         basvuru.setOkulAdi(requestDto.getOkulAdi());
@@ -91,9 +97,11 @@ public class BasvuruService {
         basvuru.setIsgBelgesiYolu(dosyaKaydet(isg, "isg"));
         basvuru.setOkulKabulFormuYolu(dosyaKaydet(okulFormu, "okul"));
         basvuru.setVeliIzinBelgesiYolu(dosyaKaydet(veliIzni, "veli"));
+
         Basvuru kaydedilen = basvuruRepository.save(basvuru);
         return mapToResponseDto(kaydedilen);
     }
+
     public List<BasvuruResponseDto> tumBasvurulariGetir() {
         return basvuruRepository.findAll().stream()
                 .map(this::mapToResponseDto)
@@ -127,7 +135,6 @@ public class BasvuruService {
         return mapToResponseDto(guncellenen);
     }
 
-    // 🌟 Duruma göre filtreleyip getiren metot:
     public List<BasvuruResponseDto> durumaGoreBasvurulariGetir(String durum) {
         return basvuruRepository.findByDurum(durum).stream()
                 .map(this::mapToResponseDto)
@@ -145,7 +152,7 @@ public class BasvuruService {
             throw new RuntimeException("HATA: " + id + " numaralı başvuru bulunamadı!");
         }
         basvuruRepository.deleteById(id);
-        return id + " numaralı başvuru sistemden başarıyla silindi! 🗑️";
+        return id + " numaralı başvuru sistemden başarıyla silindi!";
     }
 
     public List<BasvuruResponseDto> dinamikBasvuruFiltrele(String durum, String departman, String sehir) {

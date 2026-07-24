@@ -1,7 +1,10 @@
 package com.example.teiasbackend.controller;
 
+import com.example.teiasbackend.dto.StudentRegisterRequestDto;
 import com.example.teiasbackend.entity.User;
 import com.example.teiasbackend.repository.UserRepository;
+import com.example.teiasbackend.security.JwtService;
+import com.example.teiasbackend.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +20,9 @@ import java.util.Optional;
 public class AuthController {
 
     private final UserRepository userRepository;
+    private final JwtService jwtService;
+    private final UserService userService;
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> loginIstegi) {
         String kullaniciAdi = loginIstegi.get("kullaniciAdi");
@@ -26,14 +32,29 @@ public class AuthController {
 
         if (userOptional.isPresent()) {
             User user = userOptional.get();
+
             if (user.getSifre().equals(sifre)) {
+                String uretilenToken = jwtService.tokenUret(user.getKullaniciAdi(), user.getRol());
+
                 return ResponseEntity.ok(Map.of(
-                        "mesaj", "Giriş Başarılı! Hoş geldin, " + user.getAdSoyad(),
+                        "mesaj", "Giriş Başarılı! Hoş geldin, " + user.getAd(),
+                        "token", uretilenToken,
                         "rol", user.getRol(),
                         "kullaniciAdi", user.getKullaniciAdi()
                 ));
             }
         }
+
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("hata", "Geçersiz kullanıcı adı veya şifre!"));
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody StudentRegisterRequestDto requestDto) {
+        try {
+            String mesaj = userService.ogrenciKaydet(requestDto);
+            return ResponseEntity.ok(Map.of("mesaj", mesaj));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("hata", e.getMessage()));
+        }
     }
 }

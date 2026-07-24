@@ -15,7 +15,8 @@ public class DataSeeder {
             if (userRepository.findByKullaniciAdi("ik_admin").isEmpty()) {
 
                 User ikYonetici = new User();
-                ikYonetici.setAdSoyad("TEİAŞ İK Yöneticisi");
+                ikYonetici.setAd("TEİAŞ İK");
+                ikYonetici.setSoyad("Yöneticisi");
                 ikYonetici.setKullaniciAdi("ik_admin");
                 ikYonetici.setSifre("teias2026");
                 ikYonetici.setRol("ROLE_HR");

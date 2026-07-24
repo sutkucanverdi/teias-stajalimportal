@@ -5,7 +5,8 @@ import lombok.Data;
 public class BasvuruCreateRequestDto {
     private Long userId;
     private String tcKimlik;
-    private String adSoyad;
+    private String ad;
+    private String soyad;
     private String eposta;
     private String telefon;
 
