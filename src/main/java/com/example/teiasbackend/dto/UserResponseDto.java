@@ -8,5 +8,4 @@ public class UserResponseDto {
     private String tcKimlik;
     private String adSoyad;
     private String rol;
-    // DİKKAT: Burada "sifre" alanı kasıtlı olarak YOK! Müşteri veya tarayıcı asla şifreyi göremez.
 }

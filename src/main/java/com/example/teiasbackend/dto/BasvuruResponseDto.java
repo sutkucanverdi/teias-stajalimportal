@@ -4,13 +4,27 @@ import lombok.Builder;
 import lombok.Data;
 import java.time.LocalDateTime;
 
-// 📤 SUNUM TEPSİMİZ: Dış dünyaya cevabı dönerken tüm User tablosunu değil, sadece stajyerin adını ve başvuru detaylarını vereceğiz!
 @Data
 @Builder
 public class BasvuruResponseDto {
     private Long id;
-    private String adSoyad;       // Stajyerin adı (User tablosundan çekip buraya koyacağız)
+    private String tcKimlik;
+    private String adSoyad;
+    private String eposta;
+    private String telefon;
+    private String okulAdi;
+    private String alan;
+    private String dal;
+    private String sinif;
+    private Double notOrtalamasi;
+    private String stajTuru;
     private String departman;
-    private String durum;         // "BEKLEMEDE", "ONAYLANDI" vb.
+    private String sehir;
+    private String baslamaTarihi;
+    private String bitisTarihi;
+    private String isgBelgesiYolu;
+    private String okulKabulFormuYolu;
+    private String veliIzinBelgesiYolu;
+    private String durum;
     private LocalDateTime basvuruTarihi;
 }

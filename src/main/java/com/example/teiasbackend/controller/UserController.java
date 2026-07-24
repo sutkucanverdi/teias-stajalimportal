@@ -16,26 +16,20 @@ public class UserController {
     public UserController(UserService userService) {
         this.userService = userService;
     }
-
-    // 1. SİPARİŞ: Tüm kullanıcıları ŞİFRELER GİZLİ şekilde listele
     @GetMapping
     public List<UserResponseDto> tumKullanicilariGetir() {
         return userService.tumKullanicilariGetir();
     }
-
-    // 2. SİPARİŞ: Dış dünyadan (Postman / React vb.) gelen gerçek kayıt isteği
     @PostMapping
     public UserResponseDto yeniKullaniciEkle(@RequestBody UserCreateRequestDto requestDto) {
         return userService.kullaniciKaydet(requestDto);
     }
-
-    // 🌟 TARAYICI TEST MODU: DTO üzerinden sahte bir kayıt gönderelim
     @GetMapping("/test-ekle")
     public String testKullanicisiEkle() {
         try {
             UserCreateRequestDto dto = new UserCreateRequestDto();
             dto.setAdSoyad("semih utku");
-            dto.setTcKimlik("10894256230"); // Kurallara uygun gerçek algoritma formatı
+            dto.setTcKimlik("10894256230");
             dto.setSifre("GizliSifre123!");
 
             userService.kullaniciKaydet(dto);

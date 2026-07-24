@@ -1,10 +1,23 @@
 package com.example.teiasbackend.dto;
 
 import lombok.Data;
-
-// 📥 KURYEMİZ: Dışarıdan (Swagger veya React'ten) bir başvuru gelirken sadece bu iki veriyi isteyeceğiz!
 @Data
 public class BasvuruCreateRequestDto {
-    private Long userId;     // Başvuruyu hangi stajyer yapıyor? (Örn: 8 numaralı ID)
-    private String departman; // Hangi bölüme başvuruyor? (Örn: "Bilgi Teknolojileri")
+    private Long userId;
+    private String tcKimlik;
+    private String adSoyad;
+    private String eposta;
+    private String telefon;
+
+    private String okulAdi;
+    private String alan;
+    private String dal;
+    private String sinif;
+    private Double notOrtalamasi;
+
+    private String stajTuru;
+    private String departman;
+    private String sehir;
+    private String baslamaTarihi;
+    private String bitisTarihi;
 }

@@ -11,8 +11,6 @@ public interface BasvuruRepository extends JpaRepository<Basvuru, Long> {
     List<Basvuru> findByDurum(String durum);
     List<Basvuru> findByDepartman(String departman);
 
-    // 🌟 İSTEĞE GÖRE ÇOKLU VE DİNAMİK FİLTRELEME SORGUSU:
-    // Parametre boş (null) gönderilirse o kriteri görmezden gelir, doluysa filtreye ekler!
     @Query("SELECT b FROM Basvuru b WHERE " +
             "(:durum IS NULL OR b.durum = :durum) AND " +
             "(:departman IS NULL OR b.departman = :departman) AND " +

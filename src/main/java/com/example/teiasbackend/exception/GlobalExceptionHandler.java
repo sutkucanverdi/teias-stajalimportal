@@ -12,26 +12,22 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
-    // 🌟 1. ÖZEL TUZAK: Veritabanında çift kayıt (unique kuralı ihlali) olduğunda kesinlikle burası çalışacak!
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, Object>> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
 
         Map<String, Object> hataCevabi = new HashMap<>();
         hataCevabi.put("zaman", LocalDateTime.now().toString());
-        hataCevabi.put("durum", HttpStatus.CONFLICT.value()); // HTTP 409 Conflict (Çakışma / Zaten Var) Kodu
+        hataCevabi.put("durum", HttpStatus.CONFLICT.value());
         hataCevabi.put("mesaj", "HATA: Bu TC Kimlik numarası ile sistemde zaten kayıtlı bir kullanıcı bulunmaktadır!");
 
         return new ResponseEntity<>(hataCevabi, HttpStatus.CONFLICT);
     }
-
-    // 🌟 2. GENEL TUZAK: Bizim TC algoritmamız gibi diğer çalışma zamanı hatalarını yakalar (400 Bad Request)
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException ex) {
 
         Map<String, Object> hataCevabi = new HashMap<>();
         hataCevabi.put("zaman", LocalDateTime.now().toString());
-        hataCevabi.put("durum", HttpStatus.BAD_REQUEST.value()); // HTTP 400 Kodu
+        hataCevabi.put("durum", HttpStatus.BAD_REQUEST.value());
         hataCevabi.put("mesaj", ex.getMessage());
 
         return new ResponseEntity<>(hataCevabi, HttpStatus.BAD_REQUEST);
