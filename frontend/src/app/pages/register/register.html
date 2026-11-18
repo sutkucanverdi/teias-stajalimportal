@@ -1,0 +1,107 @@
+<div class="kart kart-vurgulu kayit-karti">
+  <div class="kart-govde metin-orta">
+    <h1 class="giris-baslik">TÜRKİYE ELEKTRİK İLETİM A.Ş.</h1>
+    <h2 class="giris-alt-baslik">Stajyer Başvuru ve Yönetim Portalı</h2>
+    <p class="metin-ikincil metin-kucuk">
+      Lise staj başvurusu yapabilmek için önce öğrenci hesabı oluşturunuz. Okul ve staj bilgilerinizi giriş yaptıktan sonra başvuru formunda gireceksiniz.
+    </p>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="kart-govde ust-cizgi" novalidate>
+    @if (hata()) {
+      <div class="uyari-kutu uyari-hata" role="alert">{{ hata() }}</div>
+    }
+
+    <h3 class="bolum-baslik">1. Kimlik Bilgileri</h3>
+    <div class="form-izgara mb-4">
+      <div class="alan">
+        <label for="tcKimlik" class="zorunlu">TC Kimlik Numarası</label>
+        <input id="tcKimlik" formControlName="tcKimlik" maxlength="11" inputmode="numeric" placeholder="11 haneli TC Kimlik No" />
+        @if (hatali('tcKimlik')) {
+          <div class="alan-hata">Geçerli bir TC Kimlik Numarası giriniz.</div>
+        } @else if (sunucuAlanHatalari()['tcKimlik']) {
+          <div class="alan-hata">{{ sunucuAlanHatalari()['tcKimlik'] }}</div>
+        }
+      </div>
+      <div class="alan">
+        <label for="dogumTarihi" class="zorunlu">Doğum Tarihi</label>
+        <input id="dogumTarihi" type="date" formControlName="dogumTarihi" />
+        @if (hatali('dogumTarihi')) {
+          <div class="alan-hata">Doğum tarihi zorunludur.</div>
+        }
+      </div>
+      <div class="alan">
+        <label for="ad" class="zorunlu">Ad</label>
+        <input id="ad" formControlName="ad" placeholder="Adınız" autocomplete="given-name" />
+        @if (hatali('ad')) {
+          <div class="alan-hata">Ad zorunludur.</div>
+        }
+      </div>
+      <div class="alan">
+        <label for="soyad" class="zorunlu">Soyad</label>
+        <input id="soyad" formControlName="soyad" placeholder="Soyadınız" autocomplete="family-name" />
+        @if (hatali('soyad')) {
+          <div class="alan-hata">Soyad zorunludur.</div>
+        }
+      </div>
+    </div>
+
+    <h3 class="bolum-baslik">2. İletişim Bilgileri</h3>
+    <div class="form-izgara mb-4">
+      <div class="alan">
+        <label for="telefon" class="zorunlu">Telefon Numarası</label>
+        <input id="telefon" formControlName="telefon" inputmode="tel" placeholder="05XXXXXXXXX" autocomplete="tel" />
+        @if (hatali('telefon')) {
+          <div class="alan-hata">Telefon 05XXXXXXXXX formatında olmalıdır.</div>
+        }
+      </div>
+      <div class="alan">
+        <label for="email" class="zorunlu">E-posta Adresi</label>
+        <input id="email" type="email" formControlName="email" placeholder="ad.soyad@ornek.com" autocomplete="email" />
+        @if (hatali('email')) {
+          <div class="alan-hata">Geçerli bir e-posta adresi giriniz.</div>
+        }
+      </div>
+    </div>
+
+    <h3 class="bolum-baslik">3. Şifre Belirleme</h3>
+    <div class="form-izgara mb-4">
+      <div class="alan">
+        <label for="sifre" class="zorunlu">Sistem Şifresi</label>
+        <input id="sifre" type="password" formControlName="sifre" placeholder="••••••••" autocomplete="new-password" />
+        @if (hatali('sifre')) {
+          <div class="alan-hata">En az 8 karakter; en az bir harf ve bir rakam içermelidir.</div>
+        } @else {
+          <div class="alan-ipucu">En az 8 karakter, harf ve rakam içermelidir.</div>
+        }
+      </div>
+      <div class="alan">
+        <label for="sifreTekrar" class="zorunlu">Şifre (Tekrar)</label>
+        <input id="sifreTekrar" type="password" formControlName="sifreTekrar" placeholder="••••••••" autocomplete="new-password" />
+        @if (form.controls.sifreTekrar.touched && form.hasError('eslesmiyor')) {
+          <div class="alan-hata">Şifreler eşleşmiyor.</div>
+        }
+      </div>
+      <div class="alan tam">
+        <label class="onay-kutusu">
+          <input type="checkbox" formControlName="kvkk" />
+          <span>
+            Kişisel verilerimin 6698 sayılı KVKK kapsamında staj başvuru süreci amacıyla işlenmesine ilişkin aydınlatma metnini okudum ve kabul ediyorum.
+          </span>
+        </label>
+        @if (hatali('kvkk')) {
+          <div class="alan-hata">Devam etmek için aydınlatma metnini onaylamalısınız.</div>
+        }
+      </div>
+    </div>
+
+    <div class="esnek-arasi ust-cizgi pt-4">
+      <div class="metin-ikincil">
+        Zaten kayıtlı mısınız? <a routerLink="/giris">Giriş Yap</a>
+      </div>
+      <button type="submit" class="btn btn-birincil" [disabled]="gonderiliyor()">
+        {{ gonderiliyor() ? 'Kaydediliyor...' : 'KAYIT OL' }}
+      </button>
+    </div>
+  </form>
+</div>

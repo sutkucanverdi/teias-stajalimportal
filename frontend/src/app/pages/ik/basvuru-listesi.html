@@ -1,0 +1,125 @@
+<div class="sayfa-baslik">
+  <div>
+    <h1>{{ ik() ? 'Staj Başvuruları' : 'Birime Yönlendirilen Başvurular' }}</h1>
+    <p>
+      @if (ik()) {
+        Gönderilmiş tüm başvuruları filtreleyebilir, inceleyebilir ve Excel'e aktarabilirsiniz.
+      } @else {
+        {{ auth.kullanici()?.departmanAdi }} birimine değerlendirme için yönlendirilen başvurular.
+      }
+    </p>
+  </div>
+  <div class="eylemler">
+    <button type="button" class="btn btn-ikincil" (click)="disaAktar()">Excel'e Aktar (CSV)</button>
+  </div>
+</div>
+
+<div class="kart mb-4">
+  <div class="kart-govde filtreler">
+    <div class="alan arama">
+      <label for="arama">Arama</label>
+      <input id="arama" [(ngModel)]="filtre.arama" (ngModelChange)="aramaDegisti()" placeholder="Ad soyad, TC, okul veya alan" />
+    </div>
+    <div class="alan">
+      <label for="durum">Durum</label>
+      <select id="durum" [(ngModel)]="filtre.durum" (ngModelChange)="ara()">
+        <option value="">Tümü</option>
+        @for (d of durumlar; track d.deger) {
+          <option [value]="d.deger">{{ d.etiket }}</option>
+        }
+      </select>
+    </div>
+    @if (ik()) {
+      <div class="alan">
+        <label for="birim">Birim</label>
+        <select id="birim" [(ngModel)]="filtre.departmanId" (ngModelChange)="ara()">
+          <option [ngValue]="null">Tümü</option>
+          @for (d of departmanlar(); track d.id) {
+            <option [ngValue]="d.id">{{ d.ad }}</option>
+          }
+        </select>
+      </div>
+      <div class="alan">
+        <label for="sehir">Şehir</label>
+        <select id="sehir" [(ngModel)]="filtre.sehir" (ngModelChange)="ara()">
+          <option value="">Tümü</option>
+          @for (s of sehirler(); track s) {
+            <option [value]="s">{{ s }}</option>
+          }
+        </select>
+      </div>
+    }
+    <div class="alan">
+      <label for="stajTuru">Staj Türü</label>
+      <select id="stajTuru" [(ngModel)]="filtre.stajTuru" (ngModelChange)="ara()">
+        <option value="">Tümü</option>
+        <option value="ZORUNLU">Zorunlu</option>
+        <option value="GONULLU">Gönüllü</option>
+      </select>
+    </div>
+    <div class="alan temizle">
+      <button type="button" class="btn btn-ikincil" (click)="temizle()">Temizle</button>
+    </div>
+  </div>
+</div>
+
+<div class="kart">
+  @if (yukleniyor() && !sonuc()) {
+    <div class="yukleniyor">Başvurular yükleniyor...</div>
+  } @else if (sonuc(); as s) {
+    @if (s.icerik.length) {
+      <div class="tablo-sarici" [style.opacity]="yukleniyor() ? 0.6 : 1">
+        <table class="tablo">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Öğrenci</th>
+              <th>Okul / Alan</th>
+              <th>Tercih / Atanan Birim</th>
+              <th>Staj Tarihleri</th>
+              <th>Durum</th>
+              <th>Güncelleme</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (b of s.icerik; track b.id) {
+              <tr class="tiklanabilir" (click)="ac(b)">
+                <td>{{ b.id }}</td>
+                <td>
+                  <a [routerLink]="['/basvuru', b.id]" (click)="$event.stopPropagation()">{{ b.ogrenciAdSoyad }}</a>
+                  <div class="ikincil">{{ b.tcKimlik }}</div>
+                </td>
+                <td>
+                  {{ b.okulAdi }}
+                  <div class="ikincil">{{ b.alan }} · {{ b.sinif }}. sınıf</div>
+                </td>
+                <td>
+                  {{ b.tercihDepartmanAdi }}
+                  @if (b.atananDepartmanAdi && b.atananDepartmanAdi !== b.tercihDepartmanAdi) {
+                    <div class="ikincil">→ {{ b.atananDepartmanAdi }}</div>
+                  }
+                  <div class="ikincil">{{ b.sehir }} · {{ b.stajTuru === 'ZORUNLU' ? 'Zorunlu' : 'Gönüllü' }}</div>
+                </td>
+                <td class="ikincil">{{ b.baslamaTarihi | date: 'dd.MM.yy' }} – {{ b.bitisTarihi | date: 'dd.MM.yy' }}</td>
+                <td><app-durum-rozet [durum]="b.durum" /></td>
+                <td class="ikincil">{{ b.guncellemeTarihi | date: 'dd.MM.yyyy HH:mm' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <div class="kart-alt esnek-arasi">
+        <span class="metin-kucuk metin-ikincil">Toplam {{ s.toplamKayit }} kayıt · Sayfa {{ s.sayfa + 1 }} / {{ s.toplamSayfa }}</span>
+        <div class="esnek">
+          <button type="button" class="btn btn-ikincil btn-kucuk" [disabled]="s.sayfa === 0" (click)="sayfayaGit(s.sayfa - 1)">← Önceki</button>
+          <button type="button" class="btn btn-ikincil btn-kucuk" [disabled]="s.sayfa + 1 >= s.toplamSayfa" (click)="sayfayaGit(s.sayfa + 1)">Sonraki →</button>
+        </div>
+      </div>
+    } @else {
+      <div class="bos-durum">
+        <h3>Kayıt bulunamadı</h3>
+        <p>Seçilen filtrelere uygun başvuru yok.</p>
+      </div>
+    }
+  }
+</div>

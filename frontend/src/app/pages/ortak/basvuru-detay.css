@@ -1,0 +1,45 @@
+.islem-grubu {
+  display: inline-flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.islem-grubu label.pasif {
+  opacity: 0.55;
+  pointer-events: none;
+}
+.dosya-adi {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  text-align: left;
+}
+.yonetici-notu {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--hata);
+}
+.islem-listesi {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.islem-listesi .uyari-kutu {
+  margin-bottom: 0;
+}
+.sil-link {
+  color: var(--hata);
+  margin-top: 6px;
+  align-self: center;
+}
+.bilgi-listesi.dar {
+  grid-template-columns: 120px minmax(0, 1fr);
+}
+.yan-sutun {
+  align-content: start;
+}
+.mb-0 {
+  margin-bottom: 0;
+}

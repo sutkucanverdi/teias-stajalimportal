@@ -1,0 +1,266 @@
+@if (yukleniyor()) {
+  <div class="yukleniyor">Başvuru yükleniyor...</div>
+} @else if (basvuru(); as b) {
+  <div class="sayfa-baslik">
+    <div>
+      <a [routerLink]="geriYolu()" class="metin-kucuk">← Geri dön</a>
+      <h1 class="mt-2">Staj Başvurusu #{{ b.id }}</h1>
+      <p>{{ b.ogrenci.ad }} {{ b.ogrenci.soyad }} · Son güncelleme: {{ b.guncellemeTarihi | date: 'dd.MM.yyyy HH:mm' }}</p>
+    </div>
+    <app-durum-rozet [durum]="b.durum" />
+  </div>
+
+  <div class="kart mb-4">
+    <div class="kart-govde">
+      <app-basvuru-adimlari [durum]="b.durum" />
+      @if (b.degerlendirmeNotu && b.durum !== 'TASLAK') {
+        <div class="uyari-kutu mt-4 mb-0"
+             [class.uyari-sari]="b.durum === 'EKSIK_BELGE'"
+             [class.uyari-hata]="b.durum === 'REDDEDILDI'"
+             [class.uyari-basari]="b.durum === 'ONAYLANDI'"
+             [class.uyari-bilgi]="b.durum !== 'EKSIK_BELGE' && b.durum !== 'REDDEDILDI' && b.durum !== 'ONAYLANDI'">
+          <strong>Değerlendirme Notu</strong>
+          {{ b.degerlendirmeNotu }}
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="izgara izgara-yan">
+    <div class="izgara">
+      <!-- Belgeler -->
+      <div class="kart">
+        <div class="kart-ust">
+          <h2>Belgeler</h2>
+          @if (b.duzenlenebilir) {
+            <span class="metin-kucuk metin-ikincil">PDF, JPG veya PNG yükleyebilirsiniz</span>
+          }
+        </div>
+        <div class="tablo-sarici">
+          <table class="tablo">
+            <thead>
+              <tr><th>Belge Türü</th><th>Yüklenen Dosya</th><th>Durum</th><th class="sag">İşlemler</th></tr>
+            </thead>
+            <tbody>
+              @for (s of belgeSatirlari(); track s.tur.id) {
+                <tr>
+                  <td>
+                    <strong>{{ s.tur.ad }}</strong>
+                    <div class="ikincil">{{ s.tur.zorunlu ? 'Zorunlu' : 'İsteğe bağlı' }} · en fazla {{ s.tur.maxBoyutMb }} MB</div>
+                  </td>
+                  <td>
+                    @if (s.belge; as belge) {
+                      <button type="button" class="btn-link dosya-adi" (click)="belgeGoruntule(belge)" [title]="belge.orijinalAd">
+                        {{ belge.orijinalAd }}
+                      </button>
+                      <div class="ikincil">{{ boyut(belge.boyut) }} · {{ belge.yuklemeTarihi | date: 'dd.MM.yyyy HH:mm' }}</div>
+                      @if (belge.yoneticiNotu) {
+                        <div class="yonetici-notu">İK notu: {{ belge.yoneticiNotu }}</div>
+                      }
+                    } @else {
+                      <span class="ikincil">Yüklenmedi</span>
+                    }
+                  </td>
+                  <td>
+                    @if (s.belge) {
+                      <app-belge-rozet [durum]="s.belge.durum" />
+                    } @else if (s.tur.zorunlu) {
+                      <span class="rozet rozet-sari">Eksik</span>
+                    } @else {
+                      <span class="rozet rozet-gri">—</span>
+                    }
+                  </td>
+                  <td class="sag">
+                    <div class="islem-grubu">
+                      @if (s.belge) {
+                        <button type="button" class="btn btn-ikincil btn-kucuk" (click)="belgeIndir(s.belge)">İndir</button>
+                      }
+                      @if (b.duzenlenebilir && s.tur.aktif && s.belge?.durum !== 'ONAYLANDI') {
+                        <label class="btn btn-birincil btn-kucuk" [class.pasif]="yuklenenTur() !== null">
+                          {{ yuklenenTur() === s.tur.id ? 'Yükleniyor...' : s.belge ? 'Değiştir' : 'Yükle' }}
+                          <input type="file" accept=".pdf,.jpg,.jpeg,.png" hidden
+                                 [disabled]="yuklenenTur() !== null" (change)="dosyaSecildi(s.tur, $event)" />
+                        </label>
+                        @if (s.belge) {
+                          <button type="button" class="btn btn-tehlike btn-kucuk" (click)="belgeSil(s.belge)">Sil</button>
+                        }
+                      }
+                      @if (belgeDegerlendirilebilir() && s.belge) {
+                        @if (s.belge.durum !== 'ONAYLANDI') {
+                          <button type="button" class="btn btn-basari btn-kucuk" (click)="belgeOnayla(s.belge)">Onayla</button>
+                        }
+                        @if (s.belge.durum !== 'REDDEDILDI') {
+                          <button type="button" class="btn btn-tehlike btn-kucuk" (click)="belgeReddetAc(s.belge)">Reddet</button>
+                        }
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Bilgiler -->
+      <div class="izgara izgara-2">
+        <div class="kart">
+          <div class="kart-ust"><h3>Öğrenci Bilgileri</h3></div>
+          <div class="kart-govde">
+            <dl class="bilgi-listesi dar">
+              <dt>Ad Soyad</dt><dd>{{ b.ogrenci.ad }} {{ b.ogrenci.soyad }}</dd>
+              <dt>TC Kimlik No</dt><dd>{{ b.ogrenci.tcKimlik }}</dd>
+              <dt>Doğum Tarihi</dt><dd>{{ b.ogrenci.dogumTarihi | date: 'dd.MM.yyyy' }}</dd>
+              <dt>E-posta</dt><dd>{{ b.ogrenci.email }}</dd>
+              <dt>Telefon</dt><dd>{{ b.ogrenci.telefon }}</dd>
+            </dl>
+          </div>
+        </div>
+        <div class="kart">
+          <div class="kart-ust"><h3>Eğitim Bilgileri</h3></div>
+          <div class="kart-govde">
+            <dl class="bilgi-listesi dar">
+              <dt>Okul</dt><dd>{{ b.okulAdi }}</dd>
+              <dt>Alan</dt><dd>{{ b.alan }}</dd>
+              <dt>Dal</dt><dd>{{ b.dal || '—' }}</dd>
+              <dt>Sınıf</dt><dd>{{ b.sinif }}. sınıf</dd>
+              <dt>Not Ortalaması</dt><dd>{{ b.notOrtalamasi ?? '—' }}</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+
+      <div class="kart">
+        <div class="kart-ust"><h3>Staj Bilgileri</h3></div>
+        <div class="kart-govde">
+          <dl class="bilgi-listesi">
+            <dt>Staj Türü</dt><dd>{{ stajTurleri[b.stajTuru] }}</dd>
+            <dt>Şehir</dt><dd>{{ b.sehir }}</dd>
+            <dt>Tercih Edilen Birim</dt><dd>{{ b.tercihDepartman?.ad || '—' }}</dd>
+            <dt>Değerlendiren Birim</dt><dd>{{ b.atananDepartman?.ad || 'Henüz yönlendirilmedi' }}</dd>
+            <dt>Staj Tarihleri</dt>
+            <dd>{{ b.baslamaTarihi | date: 'dd.MM.yyyy' }} – {{ b.bitisTarihi | date: 'dd.MM.yyyy' }}</dd>
+            <dt>Gönderim Tarihi</dt><dd>{{ (b.basvuruTarihi | date: 'dd.MM.yyyy HH:mm') || 'Gönderilmedi' }}</dd>
+            @if (b.ogrenciNotu) {
+              <dt>Öğrenci Notu</dt><dd>{{ b.ogrenciNotu }}</dd>
+            }
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sağ sütun -->
+    <div class="izgara yan-sutun">
+      <div class="kart kart-vurgulu">
+        <div class="kart-ust"><h3>İşlemler</h3></div>
+        <div class="kart-govde islem-listesi">
+          @if (ogrenci()) {
+            @if (b.duzenlenebilir) {
+              @if (eksikZorunlu().length) {
+                <div class="uyari-kutu uyari-sari">
+                  <strong>Göndermeden önce yükleyin:</strong>
+                  @for (s of eksikZorunlu(); track s.tur.id) {
+                    <div>• {{ s.tur.ad }}</div>
+                  }
+                </div>
+              }
+              <button type="button" class="btn btn-birincil btn-blok" [disabled]="islemde() || eksikZorunlu().length > 0" (click)="gonder()">
+                {{ b.durum === 'EKSIK_BELGE' ? 'Başvuruyu Yeniden Gönder' : 'Başvuruyu Gönder' }}
+              </button>
+              <a [routerLink]="['/ogrenci/basvuru', b.id, 'duzenle']" class="btn btn-ikincil btn-blok">Başvuru Bilgilerini Düzenle</a>
+              @if (b.durum === 'TASLAK') {
+                <button type="button" class="btn btn-tehlike btn-blok" (click)="sil()">Taslağı Sil</button>
+              }
+            } @else {
+              <p class="metin-ikincil metin-kucuk mt-0">
+                @switch (b.durum) {
+                  @case ('ONAYLANDI') { Başvurunuz sonuçlandı. Staj başlangıcında ilgili birime başvurunuz. }
+                  @case ('REDDEDILDI') { Başvurunuz olumsuz sonuçlandı. Yeni bir başvuru oluşturabilirsiniz. }
+                  @default { Başvurunuz değerlendirme aşamasında olduğu için şu an işlem yapamazsınız. }
+                }
+              </p>
+            }
+          } @else {
+            @for (g of b.yapilabilecekGecisler; track g) {
+              <button type="button" [class]="gecisSinifi(g)" (click)="durumDiyaloguAc(g)">{{ gecisEtiketi(g) }}</button>
+            } @empty {
+              <p class="metin-ikincil metin-kucuk mt-0">Bu aşamada sizin için tanımlı bir işlem bulunmuyor.</p>
+            }
+            @if (ik()) {
+              <button type="button" class="btn-link metin-kucuk sil-link" (click)="sil()">Başvuruyu sistemden sil</button>
+            }
+          }
+        </div>
+      </div>
+
+      <div class="kart">
+        <div class="kart-ust"><h3>Başvuru Geçmişi</h3></div>
+        <div class="kart-govde">
+          <ul class="zaman-cizelgesi">
+            @for (g of gecmis(); track g.id) {
+              <li>
+                <div class="zaman">{{ g.islemTarihi | date: 'dd.MM.yyyy HH:mm' }} · {{ g.islemYapan }}</div>
+                <strong>{{ g.yeniDurumEtiketi }}</strong>
+                @if (g.aciklama) {
+                  <div class="aciklama">{{ g.aciklama }}</div>
+                }
+              </li>
+            }
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Diyalog -->
+  @if (diyalog(); as d) {
+    <div class="perde" (click)="diyalog.set(null)">
+      <div class="kart diyalog" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+        <div class="kart-ust">
+          <h3>{{ d.tur === 'belgeRet' ? 'Belgeyi Reddet' : gecisEtiketi(d.hedef) }}</h3>
+          <button type="button" class="btn-link" (click)="diyalog.set(null)" aria-label="Kapat">✕</button>
+        </div>
+        <div class="kart-govde">
+          @if (d.tur === 'belgeRet') {
+            <p class="mt-0">
+              <b>{{ d.belge?.belgeTuruAd }}</b> belgesi reddedilecek. Öğrenci belgeyi yeniden yükleyebilmesi için başvuruyu ayrıca
+              "Eksik Belge" durumuna almayı unutmayınız.
+            </p>
+          } @else {
+            <p class="mt-0">
+              Başvuru <b>{{ durumEtiketleri[b.durum] }}</b> → <b>{{ durumEtiketleri[d.hedef] }}</b> durumuna alınacak.
+            </p>
+            @if (d.hedef === 'BIRIM_DEGERLENDIRMESINDE') {
+              <div class="alan mb-4">
+                <label for="dDepartman" class="zorunlu">Yönlendirilecek Birim</label>
+                <select id="dDepartman" [ngModel]="d.departmanId" (ngModelChange)="diyaloguGuncelle('departmanId', $event)">
+                  @for (dep of departmanlar(); track dep.id) {
+                    <option [ngValue]="dep.id">{{ dep.ad }} ({{ dep.sehir }}) — kalan {{ dep.kalanKontenjan }}</option>
+                  }
+                </select>
+                <div class="alan-ipucu">Öğrencinin tercihi: {{ b.tercihDepartman?.ad }}</div>
+              </div>
+            }
+          }
+          <div class="alan">
+            <label for="dAciklama" [class.zorunlu]="d.tur === 'belgeRet' || d.aciklamaZorunlu">
+              {{ d.tur === 'belgeRet' ? 'Öğrenciye iletilecek açıklama' : 'Açıklama' }}
+            </label>
+            <textarea id="dAciklama" [ngModel]="d.aciklama" (ngModelChange)="diyaloguGuncelle('aciklama', $event)" maxlength="2000"
+                      [placeholder]="d.tur === 'belgeRet' ? 'Örn: Belge okunmuyor, lütfen net bir tarama yükleyiniz.' : 'Bu açıklama öğrenciye gösterilir.'"></textarea>
+          </div>
+        </div>
+        <div class="kart-alt">
+          <button type="button" class="btn btn-ikincil" (click)="diyalog.set(null)">Vazgeç</button>
+          <button type="button" class="btn"
+                  [class.btn-tehlike-dolu]="d.tur === 'belgeRet' || d.hedef === 'REDDEDILDI'"
+                  [class.btn-basari]="d.tur === 'durum' && d.hedef === 'ONAYLANDI'"
+                  [class.btn-birincil]="d.tur === 'durum' && d.hedef !== 'REDDEDILDI' && d.hedef !== 'ONAYLANDI'"
+                  [disabled]="islemde()" (click)="diyaloguOnayla()">
+            {{ islemde() ? 'İşleniyor...' : 'Onayla' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+}

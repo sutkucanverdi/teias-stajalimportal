@@ -1,0 +1,136 @@
+<div class="sayfa-baslik">
+  <div>
+    <h1>{{ duzenleme() ? 'Başvuru Bilgilerini Düzenle' : 'Yeni Staj Başvurusu' }}</h1>
+    <p>Kimlik ve iletişim bilgileriniz hesabınızdan otomatik olarak alınır. Lütfen okul ve staj bilgilerinizi eksiksiz doldurunuz.</p>
+  </div>
+</div>
+
+@if (yukleniyor()) {
+  <div class="yukleniyor">Form hazırlanıyor...</div>
+} @else {
+  <form [formGroup]="form" (ngSubmit)="kaydet()" class="kart" novalidate>
+    <div class="kart-govde">
+      @if (hata()) {
+        <div class="uyari-kutu uyari-hata" role="alert">
+          {{ hata() }}
+          @for (h of sunucuHatalari() | keyvalue; track h.key) {
+            <div>• {{ h.value }}</div>
+          }
+        </div>
+      }
+
+      <h3 class="bolum-baslik">1. Eğitim Bilgileri</h3>
+      <div class="form-izgara mb-4">
+        <div class="alan tam">
+          <label for="okulAdi" class="zorunlu">Okuduğunuz Lise</label>
+          <input id="okulAdi" formControlName="okulAdi" placeholder="Örn: Ankara Mesleki ve Teknik Anadolu Lisesi" />
+          @if (hatali('okulAdi')) {
+            <div class="alan-hata">Okul adı zorunludur.</div>
+          }
+        </div>
+        <div class="alan">
+          <label for="alan" class="zorunlu">Alan</label>
+          <input id="alan" formControlName="alan" placeholder="Örn: Elektrik-Elektronik Teknolojisi" list="alanlar" />
+          <datalist id="alanlar">
+            <option value="Elektrik-Elektronik Teknolojisi"></option>
+            <option value="Bilişim Teknolojileri"></option>
+            <option value="Makine ve Tasarım Teknolojisi"></option>
+            <option value="Muhasebe ve Finansman"></option>
+            <option value="Büro Yönetimi ve Yönetici Asistanlığı"></option>
+            <option value="Endüstriyel Otomasyon Teknolojileri"></option>
+          </datalist>
+          @if (hatali('alan')) {
+            <div class="alan-hata">Alan zorunludur.</div>
+          }
+        </div>
+        <div class="alan">
+          <label for="dal">Dal</label>
+          <input id="dal" formControlName="dal" placeholder="Örn: Elektrik Tesisatları ve Pano Montörlüğü" />
+        </div>
+        <div class="alan">
+          <label for="sinif" class="zorunlu">Sınıf</label>
+          <select id="sinif" formControlName="sinif">
+            <option value="9">9. Sınıf</option>
+            <option value="10">10. Sınıf</option>
+            <option value="11">11. Sınıf</option>
+            <option value="12">12. Sınıf</option>
+          </select>
+        </div>
+        <div class="alan">
+          <label for="notOrtalamasi">Not Ortalaması (0-100)</label>
+          <input id="notOrtalamasi" type="number" min="0" max="100" step="0.01" formControlName="notOrtalamasi" placeholder="Örn: 85.50" />
+          @if (hatali('notOrtalamasi')) {
+            <div class="alan-hata">Not ortalaması 0 ile 100 arasında olmalıdır.</div>
+          }
+        </div>
+      </div>
+
+      <h3 class="bolum-baslik">2. Staj Tercihi</h3>
+      <div class="form-izgara mb-4">
+        <div class="alan">
+          <label for="stajTuru" class="zorunlu">Staj Türü</label>
+          <select id="stajTuru" formControlName="stajTuru">
+            <option value="ZORUNLU">Zorunlu Staj (İşletmede Beceri Eğitimi)</option>
+            <option value="GONULLU">Gönüllü Staj</option>
+          </select>
+        </div>
+        <div class="alan">
+          <label for="sehir" class="zorunlu">Staj Yapılacak Şehir</label>
+          <select id="sehir" formControlName="sehir">
+            <option value="" disabled>Şehir seçiniz</option>
+            @for (s of sehirler(); track s) {
+              <option [value]="s">{{ s }}</option>
+            }
+          </select>
+          @if (hatali('sehir')) {
+            <div class="alan-hata">Şehir seçiniz.</div>
+          }
+        </div>
+        <div class="alan tam">
+          <label for="tercihDepartmanId" class="zorunlu">Tercih Edilen Birim</label>
+          <select id="tercihDepartmanId" formControlName="tercihDepartmanId">
+            <option [ngValue]="null" disabled>{{ form.controls.sehir.value ? 'Birim seçiniz' : 'Önce şehir seçiniz' }}</option>
+            @for (d of filtreliDepartmanlar(); track d.id) {
+              <option [ngValue]="d.id" [disabled]="d.kalanKontenjan === 0">
+                {{ d.ad }} — {{ d.kalanKontenjan > 0 ? 'Kalan kontenjan: ' + d.kalanKontenjan : 'Kontenjan dolu' }}
+              </option>
+            }
+          </select>
+          @if (hatali('tercihDepartmanId')) {
+            <div class="alan-hata">Birim seçiniz.</div>
+          }
+          @if (secilenDepartman()?.aciklama; as aciklama) {
+            <div class="alan-ipucu">{{ aciklama }}</div>
+          }
+        </div>
+        <div class="alan">
+          <label for="baslamaTarihi" class="zorunlu">Staj Başlama Tarihi</label>
+          <input id="baslamaTarihi" type="date" [min]="bugun" formControlName="baslamaTarihi" />
+          @if (hatali('baslamaTarihi')) {
+            <div class="alan-hata">Başlama tarihi zorunludur.</div>
+          }
+        </div>
+        <div class="alan">
+          <label for="bitisTarihi" class="zorunlu">Staj Bitiş Tarihi</label>
+          <input id="bitisTarihi" type="date" [min]="form.controls.baslamaTarihi.value || bugun" formControlName="bitisTarihi" />
+          @if (form.hasError('tarihAraligi') && form.controls.bitisTarihi.touched) {
+            <div class="alan-hata">Bitiş tarihi başlama tarihinden sonra olmalıdır.</div>
+          } @else if (hatali('bitisTarihi')) {
+            <div class="alan-hata">Bitiş tarihi zorunludur.</div>
+          }
+        </div>
+        <div class="alan tam">
+          <label for="ogrenciNotu">Eklemek İstedikleriniz</label>
+          <textarea id="ogrenciNotu" formControlName="ogrenciNotu" maxlength="1000"
+                    placeholder="İlgi alanlarınız, sertifikalarınız veya özel bir durumunuz varsa belirtebilirsiniz."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="kart-alt">
+      <a [routerLink]="duzenleme() ? ['/basvuru', id()] : ['/ogrenci/panel']" class="btn btn-ikincil">Vazgeç</a>
+      <button type="submit" class="btn btn-birincil" [disabled]="gonderiliyor()">
+        {{ gonderiliyor() ? 'Kaydediliyor...' : duzenleme() ? 'Değişiklikleri Kaydet' : 'Kaydet ve Belge Yüklemeye Geç' }}
+      </button>
+    </div>
+  </form>
+}

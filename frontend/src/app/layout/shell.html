@@ -1,0 +1,44 @@
+<div class="ust-serit">
+  <div class="kapsayici esnek-arasi">
+    <span>T.C. Enerji ve Tabii Kaynaklar Bakanlığı İlgili Kuruluşu</span>
+    <span>Stajyer Başvuru ve Yönetim Portalı</span>
+  </div>
+</div>
+
+<header class="baslik">
+  <div class="kapsayici baslik-ic">
+    <a [routerLink]="auth.anaSayfa()" class="logo-link" aria-label="Ana sayfa">
+      <app-kurum-logo />
+    </a>
+
+    @if (auth.kullanici(); as k) {
+      <div class="kullanici">
+        <div class="kullanici-bilgi">
+          <strong>{{ k.ad }} {{ k.soyad }}</strong>
+          <span>{{ rolEtiketi() }}{{ k.departmanAdi ? ' · ' + k.departmanAdi : '' }}</span>
+        </div>
+        <a routerLink="/profil" class="btn btn-kucuk ust-btn">Profilim</a>
+        <button type="button" class="btn btn-kucuk ust-btn" (click)="auth.cikisYap()">Çıkış</button>
+      </div>
+    }
+  </div>
+</header>
+
+<nav class="menu" aria-label="Ana menü">
+  <div class="kapsayici menu-ic">
+    @for (m of menu(); track m.yol) {
+      <a [routerLink]="m.yol" routerLinkActive="aktif">{{ m.etiket }}</a>
+    }
+  </div>
+</nav>
+
+<main class="kapsayici sayfa">
+  <router-outlet />
+</main>
+
+<footer class="alt-bilgi">
+  <div class="kapsayici esnek-arasi">
+    <span>© {{ yil }} Türkiye Elektrik İletim A.Ş. — İnsan Kaynakları Dairesi Başkanlığı</span>
+    <span>Bilgi Teknolojileri Dairesi Başkanlığı</span>
+  </div>
+</footer>

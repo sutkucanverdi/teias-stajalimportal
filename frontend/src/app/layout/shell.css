@@ -1,0 +1,96 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+.ust-serit {
+  background: var(--lacivert-koyu);
+  color: #b8c4d6;
+  font-size: 11px;
+  padding: 5px 0;
+}
+.baslik {
+  background: var(--lacivert);
+  color: #fff;
+  border-bottom: 3px solid var(--vurgu);
+}
+.baslik-ic {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  flex-wrap: wrap;
+}
+.logo-link:hover {
+  text-decoration: none;
+}
+.kullanici {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.kullanici-bilgi {
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+  line-height: 1.25;
+}
+.kullanici-bilgi strong {
+  font-size: 13px;
+}
+.kullanici-bilgi span {
+  font-size: 11px;
+  color: #c9d4e3;
+}
+.ust-btn {
+  background: transparent;
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.45);
+}
+.ust-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+.menu {
+  background: #fff;
+  border-bottom: 1px solid var(--cizgi);
+}
+.menu-ic {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+}
+.menu a {
+  display: block;
+  padding: 13px 14px 11px;
+  color: var(--metin-ikincil);
+  font-weight: 600;
+  font-size: 13px;
+  border-bottom: 3px solid transparent;
+  white-space: nowrap;
+}
+.menu a:hover {
+  color: var(--lacivert);
+  text-decoration: none;
+}
+.menu a.aktif {
+  color: var(--lacivert);
+  border-bottom-color: var(--lacivert);
+}
+main {
+  flex: 1;
+  width: 100%;
+}
+.alt-bilgi {
+  background: #fff;
+  border-top: 1px solid var(--cizgi);
+  color: #8a94a3;
+  font-size: 11px;
+  padding: 14px 0;
+}
+@media (max-width: 640px) {
+  .kullanici-bilgi {
+    display: none;
+  }
+}

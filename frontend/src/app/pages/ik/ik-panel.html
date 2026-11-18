@@ -1,0 +1,107 @@
+<div class="sayfa-baslik">
+  <div>
+    <h1>İnsan Kaynakları Gösterge Paneli</h1>
+    <p>Lise staj başvurularının genel durumu, bekleyen işler ve birim kontenjan dolulukları.</p>
+  </div>
+  <div class="eylemler">
+    <a routerLink="/ik/basvurular" class="btn btn-birincil">Tüm Başvurular</a>
+  </div>
+</div>
+
+@if (yukleniyor()) {
+  <div class="yukleniyor">Veriler yükleniyor...</div>
+} @else if (ist(); as i) {
+  <div class="izgara izgara-4 mb-4">
+    <div class="kart istatistik">
+      <div class="deger">{{ i.toplamBasvuru }}</div>
+      <div class="baslik">Toplam Başvuru</div>
+    </div>
+    <div class="kart istatistik sari">
+      <div class="deger">{{ i.bekleyenIkIslemi }}</div>
+      <div class="baslik">İK İşlemi Bekleyen</div>
+    </div>
+    <div class="kart istatistik yesil">
+      <div class="deger">{{ i.onaylanan }}</div>
+      <div class="baslik">Onaylanan Stajyer</div>
+    </div>
+    <div class="kart istatistik kirmizi">
+      <div class="deger">{{ i.reddedilen }}</div>
+      <div class="baslik">Reddedilen</div>
+    </div>
+  </div>
+
+  <div class="izgara izgara-2 mb-4">
+    <div class="kart">
+      <div class="kart-ust">
+        <h3>Duruma Göre Başvurular</h3>
+        <span class="metin-kucuk metin-ikincil">Kayıtlı öğrenci: {{ i.toplamOgrenci }}</span>
+      </div>
+      <div class="kart-govde">
+        @for (s of durumSatirlari(); track s.durum) {
+          <a class="durum-satiri" routerLink="/ik/basvurular" [queryParams]="{ durum: s.durum }">
+            <span class="durum-etiket">{{ s.etiket }}</span>
+            <span class="ilerleme durum-cubuk"><span [style.width.%]="s.oran"></span></span>
+            <b class="durum-sayi">{{ s.sayi }}</b>
+          </a>
+        }
+      </div>
+    </div>
+
+    <div class="kart">
+      <div class="kart-ust">
+        <h3>Yeni Gelen Başvurular</h3>
+        <a routerLink="/ik/basvurular" [queryParams]="{ durum: 'GONDERILDI' }" class="metin-kucuk">Tümü →</a>
+      </div>
+      @if (bekleyenler().length) {
+        <div class="tablo-sarici">
+          <table class="tablo">
+            <tbody>
+              @for (b of bekleyenler(); track b.id) {
+                <tr>
+                  <td>
+                    <a [routerLink]="['/basvuru', b.id]">{{ b.ogrenciAdSoyad }}</a>
+                    <div class="ikincil">{{ b.okulAdi }}</div>
+                  </td>
+                  <td class="ikincil">{{ b.tercihDepartmanAdi }}</td>
+                  <td class="ikincil">{{ b.basvuruTarihi | date: 'dd.MM.yyyy' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="bos-durum">İnceleme bekleyen yeni başvuru yok.</div>
+      }
+    </div>
+  </div>
+
+  <div class="kart">
+    <div class="kart-ust">
+      <h3>Birim Kontenjan Doluluğu</h3>
+      <a routerLink="/ik/birimler" class="metin-kucuk">Birimleri yönet →</a>
+    </div>
+    <div class="tablo-sarici">
+      <table class="tablo">
+        <thead>
+          <tr><th>Birim</th><th>Şehir</th><th>Değerlendirmede</th><th>Onaylanan / Kontenjan</th><th style="width: 30%">Doluluk</th></tr>
+        </thead>
+        <tbody>
+          @for (d of i.departmanlar; track d.id) {
+            <tr>
+              <td><strong>{{ d.ad }}</strong></td>
+              <td>{{ d.sehir }}</td>
+              <td>{{ d.degerlendirmede }}</td>
+              <td>{{ d.onaylanan }} / {{ d.kontenjan }}</td>
+              <td>
+                <div class="esnek">
+                  <div class="ilerleme" style="flex: 1"><span [style.width.%]="d.dolulukYuzdesi"></span></div>
+                  <span class="metin-kucuk">%{{ d.dolulukYuzdesi }}</span>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}

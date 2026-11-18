@@ -1,0 +1,56 @@
+<div class="kart kart-vurgulu giris-karti">
+  <div class="kart-govde metin-orta">
+    <h1 class="giris-baslik">TÜRKİYE ELEKTRİK İLETİM A.Ş.</h1>
+    <h2 class="giris-alt-baslik">Stajyer Başvuru ve Yönetim Portalı</h2>
+    <p class="metin-ikincil metin-kucuk">Sisteme giriş yapmak için kimlik bilgilerinizi giriniz.</p>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="onLogin()" class="kart-govde ust-cizgi" novalidate>
+    @if (hata()) {
+      <div class="uyari-kutu uyari-hata" role="alert">{{ hata() }}</div>
+    }
+
+    <div class="alan mb-4">
+      <label for="kullaniciAdi" class="zorunlu">TC Kimlik No / Kullanıcı Adı</label>
+      <input id="kullaniciAdi" formControlName="kullaniciAdi" autocomplete="username"
+             placeholder="Öğrenciler: 11 haneli TC Kimlik No" />
+      @if (form.controls.kullaniciAdi.touched && form.controls.kullaniciAdi.invalid) {
+        <div class="alan-hata">Bu alan zorunludur.</div>
+      }
+      <div class="alan-ipucu">Personel girişi için kurum kullanıcı adınızı kullanınız.</div>
+    </div>
+
+    <div class="alan mb-4">
+      <label for="sifre" class="zorunlu">Sistem Şifresi</label>
+      <div class="sifre-alani">
+        <input id="sifre" [type]="sifreGoster() ? 'text' : 'password'" formControlName="sifre"
+               autocomplete="current-password" placeholder="••••••••" />
+        <button type="button" class="btn-link metin-kucuk" (click)="sifreGoster.set(!sifreGoster())">
+          {{ sifreGoster() ? 'Gizle' : 'Göster' }}
+        </button>
+      </div>
+      @if (form.controls.sifre.touched && form.controls.sifre.invalid) {
+        <div class="alan-hata">Şifre zorunludur.</div>
+      }
+    </div>
+
+    <button type="submit" class="btn btn-birincil btn-blok" [disabled]="gonderiliyor()">
+      {{ gonderiliyor() ? 'Giriş yapılıyor...' : 'SİSTEME GİRİŞ YAP' }}
+    </button>
+  </form>
+
+  @if (aktivasyonGerekli()) {
+    <form [formGroup]="aktivasyonForm" (ngSubmit)="aktiveEt()" class="kart-govde ust-cizgi" novalidate>
+      <div class="alan mb-4">
+        <label for="kod" class="zorunlu">Aktivasyon Kodu</label>
+        <input id="kod" formControlName="kod" maxlength="6" inputmode="numeric" placeholder="6 haneli kod" />
+      </div>
+      <button type="submit" class="btn btn-ikincil btn-blok">Hesabı Aktive Et</button>
+    </form>
+  }
+
+  <div class="kart-alt metin-orta">
+    <span class="metin-ikincil">Hesabınız yok mu?</span>
+    <a routerLink="/kayit">Öğrenci Kaydı Oluştur</a>
+  </div>
+</div>

@@ -1,0 +1,152 @@
+<div class="sayfa-baslik">
+  <div>
+    <h1>Hoş geldiniz, {{ auth.kullanici()?.ad }}</h1>
+    <p>Staj başvurunuzu bu ekrandan oluşturabilir, belgelerinizi yükleyebilir ve sürecin her adımını takip edebilirsiniz.</p>
+  </div>
+  @if (!yukleniyor() && yeniBasvuruYapabilir()) {
+    <div class="eylemler">
+      <a routerLink="/ogrenci/basvuru/yeni" class="btn btn-birincil">+ Yeni Staj Başvurusu</a>
+    </div>
+  }
+</div>
+
+@if (yukleniyor()) {
+  <div class="yukleniyor">Başvuru bilgileriniz yükleniyor...</div>
+} @else {
+  @if (aktif(); as b) {
+    <div class="kart mb-4">
+      <div class="kart-ust">
+        <h2>Başvuru No: {{ b.id }}</h2>
+        <app-durum-rozet [durum]="b.durum" />
+      </div>
+      <div class="kart-govde">
+        <app-basvuru-adimlari [durum]="b.durum" />
+
+        @switch (b.durum) {
+          @case ('TASLAK') {
+            <div class="uyari-kutu uyari-bilgi mt-4">
+              <strong>Başvurunuz henüz gönderilmedi.</strong>
+              Zorunlu belgeleri yükledikten sonra "Başvuruyu Gönder" butonu ile İnsan Kaynakları'na iletebilirsiniz.
+              @if (eksikBelgeler().length) {
+                <div class="mt-2">Eksik zorunlu belgeler: <b>{{ eksikBelgeAdlari() }}</b></div>
+              }
+            </div>
+          }
+          @case ('EKSIK_BELGE') {
+            <div class="uyari-kutu uyari-sari mt-4">
+              <strong>İnsan Kaynakları sizden belge tamamlamanızı istedi.</strong>
+              {{ b.degerlendirmeNotu }}
+              <div class="mt-2">Belgelerinizi güncelleyip başvurunuzu yeniden gönderiniz.</div>
+            </div>
+          }
+          @case ('ONAYLANDI') {
+            <div class="uyari-kutu uyari-basari mt-4">
+              <strong>Tebrikler! Staj başvurunuz kabul edildi.</strong>
+              {{ b.degerlendirmeNotu }}
+            </div>
+          }
+          @default {
+            <div class="uyari-kutu uyari-bilgi mt-4">
+              <strong>Başvurunuz değerlendirme sürecindedir.</strong>
+              Durum değişikliklerini bu ekrandan takip edebilirsiniz.
+            </div>
+          }
+        }
+
+        <dl class="bilgi-listesi mt-4">
+          <dt>Tercih Edilen Birim</dt>
+          <dd>{{ b.tercihDepartman?.ad }} ({{ b.tercihDepartman?.sehir }})</dd>
+          @if (b.atananDepartman) {
+            <dt>Değerlendiren Birim</dt>
+            <dd>{{ b.atananDepartman.ad }}</dd>
+          }
+          <dt>Staj Türü</dt>
+          <dd>{{ stajTurleri[b.stajTuru] }}</dd>
+          <dt>Staj Tarihleri</dt>
+          <dd>{{ b.baslamaTarihi | date: 'dd.MM.yyyy' }} – {{ b.bitisTarihi | date: 'dd.MM.yyyy' }}</dd>
+          <dt>Okul / Alan</dt>
+          <dd>{{ b.okulAdi }} · {{ b.alan }}{{ b.dal ? ' / ' + b.dal : '' }} · {{ b.sinif }}. sınıf</dd>
+          <dt>Yüklenen Belgeler</dt>
+          <dd>{{ b.belgeler.length }} adet</dd>
+          @if (b.basvuruTarihi) {
+            <dt>Gönderim Tarihi</dt>
+            <dd>{{ b.basvuruTarihi | date: 'dd.MM.yyyy HH:mm' }}</dd>
+          }
+        </dl>
+      </div>
+      <div class="kart-alt">
+        @if (b.duzenlenebilir) {
+          <a [routerLink]="['/ogrenci/basvuru', b.id, 'duzenle']" class="btn btn-ikincil">Bilgileri Düzenle</a>
+        }
+        <a [routerLink]="['/basvuru', b.id]" class="btn btn-birincil">
+          {{ b.duzenlenebilir ? 'Belgeler ve Gönderim' : 'Başvuru Detayı' }}
+        </a>
+      </div>
+    </div>
+  } @else {
+    <div class="kart mb-4">
+      <div class="bos-durum">
+        <h3>Henüz bir staj başvurunuz bulunmuyor</h3>
+        <p>TEİAŞ birimlerinde lise stajı yapmak için başvuru formunu doldurup gerekli belgeleri yükleyiniz.</p>
+        <a routerLink="/ogrenci/basvuru/yeni" class="btn btn-birincil mt-2">Başvuru Formunu Doldur</a>
+      </div>
+    </div>
+  }
+
+  <div class="izgara izgara-2">
+    <div class="kart">
+      <div class="kart-ust"><h3>Başvuru Süreci</h3></div>
+      <div class="kart-govde">
+        <ol class="surec-listesi">
+          <li><b>Başvuru formunu doldurun:</b> okul, alan ve tercih ettiğiniz birimi seçin.</li>
+          <li><b>Belgelerinizi yükleyin:</b> PDF, JPG veya PNG formatında.</li>
+          <li><b>Başvurunuzu gönderin:</b> İnsan Kaynakları ön incelemesini yapar.</li>
+          <li><b>Birim değerlendirmesi:</b> uygun bulunan başvurular ilgili birime yönlendirilir.</li>
+          <li><b>Sonuç:</b> kabul/ret bilgisi bu ekranda ve başvuru geçmişinizde görünür.</li>
+        </ol>
+      </div>
+    </div>
+    <div class="kart">
+      <div class="kart-ust"><h3>İstenen Belgeler</h3></div>
+      <div class="kart-govde">
+        <ul class="surec-listesi">
+          @for (t of belgeTurleri(); track t.id) {
+            <li>
+              <b>{{ t.ad }}</b>
+              @if (t.zorunlu) {
+                <span class="rozet rozet-kirmizi">Zorunlu</span>
+              } @else {
+                <span class="rozet rozet-gri">İsteğe bağlı</span>
+              }
+              <div class="metin-ikincil metin-kucuk">{{ t.aciklama }} (en fazla {{ t.maxBoyutMb }} MB)</div>
+            </li>
+          }
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  @if (gecmis().length) {
+    <div class="kart mt-4">
+      <div class="kart-ust"><h3>Önceki Başvurularım</h3></div>
+      <div class="tablo-sarici">
+        <table class="tablo">
+          <thead>
+            <tr><th>No</th><th>Birim</th><th>Tarih</th><th>Durum</th><th></th></tr>
+          </thead>
+          <tbody>
+            @for (g of gecmis(); track g.id) {
+              <tr>
+                <td>{{ g.id }}</td>
+                <td>{{ g.tercihDepartman?.ad }}</td>
+                <td>{{ g.basvuruTarihi | date: 'dd.MM.yyyy' }}</td>
+                <td><app-durum-rozet [durum]="g.durum" /></td>
+                <td class="sag"><a [routerLink]="['/basvuru', g.id]">Görüntüle</a></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+}

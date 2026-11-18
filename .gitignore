@@ -1,33 +1,26 @@
-HELP.md
-target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
-*.class
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
+# Eski NestJS denemesi (yerel arşiv, repoya girmez)
+_eski/
 
-### IntelliJ IDEA ###
-.idea
-*.iws
+# Ortam değişkenleri / gizli bilgiler
+.env
+*.env.local
+
+# Backend
+backend/target/
+backend/uploads/
+backend/.mvn/wrapper/maven-wrapper.jar
+backend/HELP.md
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+
+# IDE / sistem
+.idea/
 *.iml
-*.ipr
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### VS Code ###
-.vscode/
+.vscode/*
+!frontend/.vscode/
+.DS_Store
+Thumbs.db
+*.log
